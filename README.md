@@ -1,6 +1,6 @@
 # DSFImageFlipbook
 
-A simple 'flipbook' of images.
+A simple 'flipbook' of images that can be presented as flipbook-style animation.
 
 <p align="center">
     <img src="https://img.shields.io/github/v/tag/dagronf/DSFImageFlipbook" />
@@ -13,11 +13,21 @@ A simple 'flipbook' of images.
     <img src="https://img.shields.io/badge/tvOS-13+-green" />
 </p>
 
-* Load up a number of images from a gif or movie, or add images individually.
-* Define the duration for each (individual) frame
-* Start!
+DSFImageFlipbook presents each image in the flipbook to the owner of the flipbook (using a block callback or combine publisher) for the duration of the image frame.
 
-DSFImageFlipbook will then present each image in the flipbook to the owner of the flipbook (using a block callback or combine publisher).
+Supports :-
+
+* loading images from a gif, a movie or manually frame-by-frame.
+* repeat count
+* speed
+* scrubbing
+* cancellation
+
+## Why?
+
+I wanted to put an animated gif in a dock tile. Due to the nature of `NSDockTile` you cannot just play an `NSImageView` as the `contentView` of the tile - the only time a dock tile updates is when you tell it to (via `display()`)
+
+So I needed a class that could present me individual images at a defined time so that I could manually update the dock image.
 
 ## Examples
 
@@ -29,17 +39,16 @@ let flipbook = DSFImageFlipbook()
 ...
 
 // Add frames manually
-flipbook.addFrame(image: image1, duration: 0.5)
-flipbook.addFrame(image: image2, duration: 0.5)
-flipbook.addFrame(image: image3, duration: 0.5)
-flipbook.addFrame(image: image4, duration: 2.0)
+flipbook.addFrame(image: image1, duration: 0.5)   // first frame for 0.5 seconds
+flipbook.addFrame(image: image2, duration: 0.5)   // second frame for 0.5 seconds
+flipbook.addFrame(image: image3, duration: 0.5)   // third frame for 0.5 seconds
+flipbook.addFrame(image: image4, duration: 2.0)   // last frame for 2.0 seconds
 
 // And start the animation
 flipbook.start() { [weak self] (frame, current, count) in
    // Do something with the provided frame
 }
 ```
-
 
 ### Using Combine (macOS 10.15+, iOS 13+, tvOS 13+)
 
@@ -59,7 +68,8 @@ cancellable = flipbook.publisher
        ... do something with 'image'
 	})
 
-flipbook.start()
+// Start the animation at 2x the speed defined in the flipbook. Repeat 10 times.
+flipbook.start(speed: 2, repeatCount: 10)
 ```
 
 ## License
