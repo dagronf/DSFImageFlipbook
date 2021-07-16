@@ -45,7 +45,7 @@ flipbook.addFrame(image: image3, duration: 0.5)   // third frame for 0.5 seconds
 flipbook.addFrame(image: image4, duration: 2.0)   // last frame for 2.0 seconds
 
 // And start the animation
-flipbook.start() { [weak self] (frame, current, count) in
+flipbook.start() { [weak self] (frame, current, count, stop) in
    // Do something with the provided frame
 }
 ```
