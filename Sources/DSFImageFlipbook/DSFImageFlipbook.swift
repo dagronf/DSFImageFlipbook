@@ -37,7 +37,12 @@ import AppKit
 #endif
 
 public class DSFImageFlipbook {
-	public typealias AnimationFrameChangedCallback = (Frame, _ current: Int, _ count: Int) -> Void
+	///
+	///  - frame: The current frame of the animation to display
+	///  - current: The index of the current frame within the flipbook
+	///  - count: The total number of frames in the flipbook
+	///  - stop: (inout) Set to true within the callback to stop the animation
+	public typealias AnimationFrameChangedCallback = (_ frame: Frame, _ current: Int, _ count: Int, _ stop: inout Bool) -> Void
 	public typealias AnimationDidCompleteCallback = (StopReason) -> Void
 
 	/// The allowable range for the playback speed
@@ -444,7 +449,7 @@ private extension DSFImageFlipbook {
 	}
 
 	// This will emit a frame on the main thread
-	private func emitCurrentFrame() -> Frame {
+	private func emitCurrentFrame() -> (frame: Frame, stop: Bool) {
 		// Must always called on the main thread
 		precondition(Thread.isMainThread, "emitCurrentFrame called on a background thread!")
 
@@ -456,9 +461,10 @@ private extension DSFImageFlipbook {
 		}
 
 		// Emit on the callback if its available
-		self.animationFrameChangedCallback?(cFrame, self.currentFrame, self.frames.count)
+		var shouldStop: Bool = false
+		self.animationFrameChangedCallback?(cFrame, self.currentFrame, self.frames.count, &shouldStop)
 
-		return cFrame
+		return (cFrame, shouldStop)
 	}
 
 	private func presentCurrentFrame() {
@@ -468,8 +474,13 @@ private extension DSFImageFlipbook {
 		// Emit the frame
 		let emitFrame = self.emitCurrentFrame()
 
+		if emitFrame.stop == true {
+			self.stop(reason: .animationComplete)
+			return
+		}
+
 		// Calculate the duration that this frame has to be "on-screen"
-		let frameDuration = emitFrame.duration / self.currentPlaybackSpeed
+		let frameDuration = emitFrame.frame.duration / self.currentPlaybackSpeed
 
 		if self.isAtLastFrame, self.timesLeftToRepeat != .max {
 			self.timesLeftToRepeat -= 1
